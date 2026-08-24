@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "react-dev": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "skillPath": "skills/react-dev/SKILL.md",
+      "computedHash": "da3caa5f2bfd7274fad3f08524ff3ad4f427978773c3e77e7b14e44aaac31d78"
+    }
+  }
+}
