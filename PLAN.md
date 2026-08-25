@@ -82,6 +82,79 @@ Seguridad: `tenantId` desde JWT; contraseñas bcryptjs; validación con class-va
 - **Base de datos:** `npx prisma-cli db init` ejecutado sobre `stock_management`
   (26 operaciones, tablas + índices + FKs + marcador). `migrations/` se commitea.
 
+## Fase 2 — Suscripción (pagos por días) + "Realizar venta"
+
+### Objetivo
+Vender días de uso de la plataforma (Mercado Pago). Quien no paga **solo puede ver**
+sus datos (sin modificar). Además, poder **realizar una venta** que descuente stock
+sin editar el producto.
+
+### Decisiones
+- **Pagos:** Mercado Pago **Checkout Pro** (redirect + webhook). Sin pagos recurrentes.
+- **Modelo de días:** vencimiento por `Tenant.expiresAt`. Al pagar se extiende.
+- **Trial:** 7 días gratis al registrarse.
+- **Solo lectura:** al vencer, las mutaciones devuelven `402 SUBSCRIPTION_EXPIRED`.
+- **Venta:** rápida de 1 producto (producto + cantidad), rechaza stock insuficiente.
+- **Paquetes:** 30d = ARS 20.000 · 90d = ARS 54.000 · 365d = ARS 192.000.
+
+### Modelo de datos (nuevo)
+- `Tenant`: agrega `expiresAt DateTime` (required, backfill existentes con now()+7d).
+- `PaymentOrder`: `tenantId`, `packageId`, `days`, `amount (Decimal)`, `currency`,
+  `status (enum payment_status)`, `mercadopagoPreferenceId?`, `mercadopagoPaymentId?`.
+- `Sale`: `tenantId`, `productId? (SetNull)`, `productName`, `quantity`, `unitPrice`,
+  `total`, `createdAt`.
+- Enum `payment_status` = pending / approved / rejected / cancelled.
+
+### Backend
+- `BillingModule`:
+  - `GET /api/billing/status` → `{ expiresAt, active, readOnly, packages }`
+  - `POST /api/billing/checkout` `{ packageId }` → preferencia Checkout Pro,
+    devuelve `{ initPoint, orderId }` (requiere `@BypassBilling`).
+  - `POST /api/billing/webhook` (`@Public`) → valida pago en MP y extiende días
+    (idempotente). HTTP directo a `api.mercadopago.com`.
+- `SalesModule`:
+  - `POST /api/sales` `{ productId, quantity }` → transacción: descuenta stock +
+    crea Sale; `400 STOCK_INSUFFICIENT` si no alcanza.
+  - `GET /api/sales?page=&pageSize=` → historial paginado.
+- `BillingGuard` global (tras `JwtAuthGuard`): bloquea POST/PUT/PATCH/DELETE cuando
+  `expiresAt <= now` → `402`. GET permitido. `@BypassBilling()` para checkout.
+- `auth.service.register`: setea `expiresAt = now + trialDays`; `me`/login incluyen
+  `expiresAt`.
+- Util `money.ts` (multiplicación decimal sin float, cents/BigInt).
+
+### Config (`.env`)
+- `MERCADO_PAGO_ACCESS_TOKEN`, `FRONTEND_URL`, `WEBHOOK_BASE_URL` (ngrok),
+  `BILLING_TRIAL_DAYS=7`, `BILLING_PACKAGES` (JSON de paquetes).
+
+### Frontend
+- Página **Suscripción**: estado + tarjetas de paquetes + botón pagar → redirige a
+  `initPoint`. Rutas `/billing/success|failure|pending`.
+- Banner global de **solo lectura** (contexto `readOnly`) + deshabilitar mutaciones.
+- Sección **Ventas**: venta rápida (producto + cantidad + total) + historial.
+  Botón "Vender" en filas de productos.
+- `src/lib/api.ts`: `getBillingStatus`, `createCheckout`, `createSale`, `fetchSales`;
+  interceptor detecta `402` para activar banner.
+
+### Estado Fase 2
+- Backend verificado por HTTP: trial en register, `status`, venta (descuenta stock,
+  rechaza insuficiente), historial, `checkout` (Checkout Pro → `initPoint`),
+  solo lectura (`402 SUBSCRIPTION_EXPIRED` en mutaciones) y `@BypassBilling` en checkout.
+- `build` + `lint` + `test` OK en backend y frontend.
+- **Pendiente de probar con pago real:** el webhook extiende `expiresAt` al recibir
+  un pago aprobado de MP. Requiere ngrok arriba (`WEBHOOK_BASE_URL`) y hacer un pago
+  de prueba (cuenta MP en modo test). El `checkout` ya devuelve `initPoint` correcto y
+  la preferencia apunta a `{webhook}/api/billing/webhook`.
+- Nota: MP rechazó `auto_return: 'approved'` en esta cuenta; se omitió.
+- **Bug corregido (webhook + redirect):**
+  - MP **descarta** `back_urls` con `http://localhost`; se reemplazó por una ruta
+    pública `/{webhook}/billing/return/:mode` que redirige a `SPA_BASE_URL`
+    (frontend local), y `back_urls` ahora usan la URL https de ngrok.
+  - El webhook ahora acepta **GET y POST** y extrae el id de `body` o query (MP puede
+    enviarlo de ambas formas). El flujo con `external_reference` = `paymentOrder.id`
+    actualiza la orden y extiende `expiresAt`.
+  - `FRONTEND_URL` quedó sin uso; se agregan `SPA_BASE_URL` (frontend local) y
+    `WEBHOOK_BASE_URL` (ngrok) en `.env`.
+
 ## Cómo correr
 
 Doble clic en `start-dev.cmd` (raíz) abre 2 ventanas: backend y frontend.
