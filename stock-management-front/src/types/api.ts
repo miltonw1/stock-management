@@ -102,3 +102,45 @@ export interface ProductInput {
   supplierId?: number
   locationId?: number
 }
+
+export interface BillingPackage {
+  id: string
+  label: string
+  days: number
+  price: number
+}
+
+export interface BillingStatus {
+  expiresAt: string
+  active: boolean
+  readOnly: boolean
+  packages: BillingPackage[]
+}
+
+export interface CheckoutResult {
+  orderId: number
+  initPoint: string | undefined
+  package: BillingPackage
+}
+
+export interface Sale {
+  id: number
+  productId: number | null
+  productName: string
+  quantity: number
+  unitPrice: string
+  total: string
+  createdAt: string
+}
+
+export interface PaginatedSales {
+  total: number
+  page: number
+  pageSize: number
+  items: Sale[]
+}
+
+export interface SalesQuery {
+  page?: number
+  pageSize?: number
+}

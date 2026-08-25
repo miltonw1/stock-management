@@ -1,14 +1,20 @@
 import axios from 'axios'
+import { queryClient } from './queryClient'
 import type {
   AuthResponse,
+  BillingStatus,
   Category,
+  CheckoutResult,
   Location,
   LoginDto,
   PaginatedProducts,
+  PaginatedSales,
   Product,
   ProductInput,
   ProductsQuery,
   RegisterDto,
+  Sale,
+  SalesQuery,
   Supplier,
   Tenant,
   User,
@@ -40,6 +46,9 @@ api.interceptors.response.use(
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'
       }
+    }
+    if (error.response?.status === 402) {
+      void queryClient.invalidateQueries({ queryKey: ['billing'] })
     }
     return Promise.reject(error)
   },
@@ -177,6 +186,29 @@ export async function updateProduct(
 
 export async function deleteProduct(id: number): Promise<void> {
   await api.delete(`/products/${id}`)
+}
+
+export async function getBillingStatus(): Promise<BillingStatus> {
+  const { data } = await api.get<BillingStatus>('/billing/status')
+  return data
+}
+
+export async function createCheckout(packageId: string): Promise<CheckoutResult> {
+  const { data } = await api.post<CheckoutResult>('/billing/checkout', { packageId })
+  return data
+}
+
+export async function createSale(dto: {
+  productId: number
+  quantity: number
+}): Promise<Sale> {
+  const { data } = await api.post<Sale>('/sales', dto)
+  return data
+}
+
+export async function fetchSales(query: SalesQuery = {}): Promise<PaginatedSales> {
+  const { data } = await api.get<PaginatedSales>('/sales', { params: query })
+  return data
 }
 
 export type { UserRole }
