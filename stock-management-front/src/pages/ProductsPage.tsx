@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Search, ShoppingCart, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,10 +22,12 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/PageHeader'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { SaleDialog } from '@/components/SaleDialog'
 import {
   ProductFormDialog,
   type ProductFormValues,
 } from '@/components/ProductFormDialog'
+import { useReadOnly } from '@/hooks/useBilling'
 import {
   createProduct,
   deleteProduct,
@@ -50,11 +52,14 @@ interface Filters {
 export function ProductsPage() {
   const { t } = useTranslation()
   const qc = useQueryClient()
+  const readOnly = useReadOnly()
   const [filters, setFilters] = useState<Filters>({ search: '', page: 1 })
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Product | null>(null)
   const [formKey, setFormKey] = useState(0)
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
+  const [saleOpen, setSaleOpen] = useState(false)
+  const [saleProductId, setSaleProductId] = useState<number | undefined>(undefined)
 
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories })
   const suppliers = useQuery({ queryKey: ['suppliers'], queryFn: fetchSuppliers })
@@ -119,10 +124,12 @@ export function ProductsPage() {
   return (
     <div>
       <PageHeader title={t('products.title')}>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          {t('products.create')}
-        </Button>
+        {!readOnly && (
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            {t('products.create')}
+          </Button>
+        )}
       </PageHeader>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -229,20 +236,38 @@ export function ProductsPage() {
                     </TableCell>
                     <TableCell className="text-right">{product.price}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEdit(product)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setDeleteTarget(product)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                      {!readOnly && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title={t('sales.create')}
+                          onClick={() => {
+                            setSaleProductId(product.id)
+                            setSaleOpen(true)
+                          }}
+                        >
+                          <ShoppingCart className="size-4" />
+                        </Button>
+                      )}
+                      {!readOnly && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => openEdit(product)}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                      )}
+                      {!readOnly && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setDeleteTarget(product)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                      {readOnly && <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>
                   </TableRow>
                 )
@@ -286,6 +311,14 @@ export function ProductsPage() {
         locations={locations.data ?? []}
         onSave={(values) => save.mutate(values)}
         pending={save.isPending}
+      />
+
+      <SaleDialog
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+        products={products.data?.items ?? []}
+        defaultProductId={saleProductId}
+        disabled={readOnly}
       />
 
       <ConfirmDialog

@@ -23,6 +23,7 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { resolveApiError } from '@/lib/errors'
+import { useReadOnly } from '@/hooks/useBilling'
 import {
   createCategory,
   deleteCategory,
@@ -34,6 +35,7 @@ import type { Category } from '@/types/api'
 export function CategoriesPage() {
   const { t } = useTranslation()
   const qc = useQueryClient()
+  const readOnly = useReadOnly()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
   const [name, setName] = useState('')
@@ -92,10 +94,12 @@ export function CategoriesPage() {
   return (
     <div>
       <PageHeader title={t('categories.title')}>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          {t('categories.create')}
-        </Button>
+        {!readOnly && (
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            {t('categories.create')}
+          </Button>
+        )}
       </PageHeader>
 
       <div className="rounded-md border">
@@ -124,20 +128,24 @@ export function CategoriesPage() {
                 <TableRow key={category.id}>
                   <TableCell>{category.name}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => openEdit(category)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setDeleteTarget(category)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openEdit(category)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    )}
+                    {!readOnly && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setDeleteTarget(category)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

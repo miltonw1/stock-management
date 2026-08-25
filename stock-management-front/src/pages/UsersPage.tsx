@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/PageHeader'
 import { useAuth } from '@/context/auth'
+import { useReadOnly } from '@/hooks/useBilling'
 import { createUser, fetchUsers } from '@/lib/api'
 import type { User } from '@/types/api'
 
@@ -36,13 +37,15 @@ export function UsersPage() {
   const { t } = useTranslation()
   const qc = useQueryClient()
   const { user: currentUser } = useAuth()
+  const readOnly = useReadOnly()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('employee')
 
-  const canManage = currentUser?.role === 'owner' || currentUser?.role === 'admin'
+  const canManage =
+    (currentUser?.role === 'owner' || currentUser?.role === 'admin') && !readOnly
 
   const { data = [], isLoading } = useQuery({ queryKey: ['users'], queryFn: fetchUsers })
 

@@ -23,6 +23,7 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { resolveApiError } from '@/lib/errors'
+import { useReadOnly } from '@/hooks/useBilling'
 import {
   createLocation,
   deleteLocation,
@@ -34,6 +35,7 @@ import type { Location } from '@/types/api'
 export function LocationsPage() {
   const { t } = useTranslation()
   const qc = useQueryClient()
+  const readOnly = useReadOnly()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Location | null>(null)
   const [name, setName] = useState('')
@@ -98,10 +100,12 @@ export function LocationsPage() {
   return (
     <div>
       <PageHeader title={t('locations.title')}>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          {t('locations.create')}
-        </Button>
+        {!readOnly && (
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            {t('locations.create')}
+          </Button>
+        )}
       </PageHeader>
 
       <div className="rounded-md border">
@@ -132,20 +136,24 @@ export function LocationsPage() {
                   <TableCell>{location.name}</TableCell>
                   <TableCell>{location.code}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => openEdit(location)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setDeleteTarget(location)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openEdit(location)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                    )}
+                    {!readOnly && (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setDeleteTarget(location)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
