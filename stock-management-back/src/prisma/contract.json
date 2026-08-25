@@ -12,8 +12,16 @@
       "model": "Location",
       "namespace": "public"
     },
+    "paymentOrder": {
+      "model": "PaymentOrder",
+      "namespace": "public"
+    },
     "product": {
       "model": "Product",
+      "namespace": "public"
+    },
+    "sale": {
+      "model": "Sale",
       "namespace": "public"
     },
     "supplier": {
@@ -33,6 +41,27 @@
     "namespaces": {
       "public": {
         "enum": {
+          "payment_status": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "pending",
+                "value": "pending"
+              },
+              {
+                "name": "approved",
+                "value": "approved"
+              },
+              {
+                "name": "rejected",
+                "value": "rejected"
+              },
+              {
+                "name": "cancelled",
+                "value": "cancelled"
+              }
+            ]
+          },
           "user_role": {
             "codecId": "pg/text@1",
             "members": [
@@ -246,6 +275,149 @@
               "table": "location"
             }
           },
+          "PaymentOrder": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz@1",
+                  "kind": "scalar"
+                }
+              },
+              "currency": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "days": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "mercadopagoPaymentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "mercadopagoPreferenceId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "packageId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "payment_status",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "tenantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "tenant": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "tenantId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tenant",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "currency": {
+                  "column": "currency"
+                },
+                "days": {
+                  "column": "days"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "mercadopagoPaymentId": {
+                  "column": "mercadopagoPaymentId"
+                },
+                "mercadopagoPreferenceId": {
+                  "column": "mercadopagoPreferenceId"
+                },
+                "packageId": {
+                  "column": "packageId"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "tenantId": {
+                  "column": "tenantId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "paymentOrder"
+            }
+          },
           "Product": {
             "fields": {
               "categoryId": {
@@ -378,6 +550,21 @@
                   "namespace": "public"
                 }
               },
+              "sales": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "productId"
+                  ]
+                },
+                "to": {
+                  "model": "Sale",
+                  "namespace": "public"
+                }
+              },
               "supplier": {
                 "cardinality": "N:1",
                 "on": {
@@ -456,6 +643,128 @@
               },
               "namespaceId": "public",
               "table": "product"
+            }
+          },
+          "Sale": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "productId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "productName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "quantity": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tenantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "total": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "unitPrice": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "product": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "productId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Product",
+                  "namespace": "public"
+                }
+              },
+              "tenant": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "tenantId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tenant",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "productId": {
+                  "column": "productId"
+                },
+                "productName": {
+                  "column": "productName"
+                },
+                "quantity": {
+                  "column": "quantity"
+                },
+                "tenantId": {
+                  "column": "tenantId"
+                },
+                "total": {
+                  "column": "total"
+                },
+                "unitPrice": {
+                  "column": "unitPrice"
+                }
+              },
+              "namespaceId": "public",
+              "table": "sale"
             }
           },
           "Supplier": {
@@ -579,6 +888,13 @@
                   "kind": "scalar"
                 }
               },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -639,6 +955,21 @@
                   "namespace": "public"
                 }
               },
+              "paymentOrders": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "tenantId"
+                  ]
+                },
+                "to": {
+                  "model": "PaymentOrder",
+                  "namespace": "public"
+                }
+              },
               "products": {
                 "cardinality": "1:N",
                 "on": {
@@ -651,6 +982,21 @@
                 },
                 "to": {
                   "model": "Product",
+                  "namespace": "public"
+                }
+              },
+              "sales": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "tenantId"
+                  ]
+                },
+                "to": {
+                  "model": "Sale",
                   "namespace": "public"
                 }
               },
@@ -689,6 +1035,9 @@
               "fields": {
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
                 },
                 "id": {
                   "column": "id"
@@ -992,6 +1341,121 @@
                 }
               ]
             },
+            "paymentOrder": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('pending', 'approved', 'rejected', 'cancelled')",
+                  "name": "paymentOrder_status_check_fc16580c",
+                  "prefix": "paymentOrder_status_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "currency": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "days": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "mercadopagoPaymentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "mercadopagoPreferenceId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "packageId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "payment_status",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "tenantId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "tenantId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "paymentOrder"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tenant"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "tenantId"
+                  ],
+                  "name": "paymentOrder_tenantId_idx_c93ed4f1",
+                  "prefix": "paymentOrder_tenantId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "product": {
               "columns": {
                 "categoryId": {
@@ -1192,6 +1656,118 @@
               },
               "uniques": []
             },
+            "sale": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "productId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "productName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "quantity": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "tenantId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "total": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "unitPrice": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "tenantId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sale"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tenant"
+                  }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "productId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sale"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "product"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "productId"
+                  ],
+                  "name": "sale_productId_idx_5858600a",
+                  "prefix": "sale_productId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tenantId"
+                  ],
+                  "name": "sale_tenantId_idx_c93ed4f1",
+                  "prefix": "sale_tenantId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "supplier": {
               "columns": {
                 "createdAt": {
@@ -1277,6 +1853,15 @@
             "tenant": {
               "columns": {
                 "createdAt": {
+                  "codecId": "pg/timestamptz@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
                   "codecId": "pg/timestamptz@1",
                   "default": {
                     "expression": "now()",
@@ -1433,6 +2018,15 @@
             }
           },
           "valueSet": {
+            "payment_status": {
+              "kind": "valueSet",
+              "values": [
+                "pending",
+                "approved",
+                "rejected",
+                "cancelled"
+              ]
+            },
             "user_role": {
               "kind": "valueSet",
               "values": [
@@ -1447,10 +2041,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "edb375b0c89a7c599b66f4145d53c326e4d621146af66a47c351b4946bb25c84"
+    "storageHash": "670c482d8a6a6dadea313240b9e61f319836aa9274f4a97525b9eb3b1943b895"
   },
   "execution": {
-    "executionHash": "9d994664e53b1217542f540b460796ef19b63a6d2b7dcbb637ea68e54125990e",
+    "executionHash": "08d13e78dfebaa278a4d20c5f4f95649f16df8fd3223783ca8e0951b659bfb38",
     "mutations": {
       "defaults": [
         {
@@ -1481,6 +2075,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "location"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "paymentOrder"
           }
         },
         {

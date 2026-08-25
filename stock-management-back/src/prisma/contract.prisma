@@ -7,17 +7,28 @@ enum user_role {
   employee = "employee"
 }
 
+enum payment_status {
+  @@type("pg/text@1")
+  pending   = "pending"
+  approved  = "approved"
+  rejected  = "rejected"
+  cancelled = "cancelled"
+}
+
 model Tenant {
-  id        Int        @id @default(autoincrement())
-  name      String
-  slug      String     @unique
-  users     User[]
-  categories Category[]
-  suppliers Supplier[]
-  locations Location[]
-  products  Product[]
-  createdAt DateTime   @default(now())
-  updatedAt temporal.updatedAt()
+  id            Int            @id @default(autoincrement())
+  name          String
+  slug          String         @unique
+  expiresAt     DateTime       @default(now())
+  users         User[]
+  categories    Category[]
+  suppliers     Supplier[]
+  locations     Location[]
+  products      Product[]
+  sales         Sale[]
+  paymentOrders PaymentOrder[]
+  createdAt     DateTime       @default(now())
+  updatedAt     temporal.updatedAt()
 }
 
 model User {
@@ -92,6 +103,7 @@ model Product {
   location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
   tenantId    Int
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sales       Sale[]
   createdAt   DateTime  @default(now())
   updatedAt   temporal.updatedAt()
 
@@ -99,4 +111,37 @@ model Product {
   @@index([categoryId])
   @@index([supplierId])
   @@index([locationId])
+}
+
+model Sale {
+  id          Int       @id @default(autoincrement())
+  tenantId    Int
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId   Int?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  quantity    Int
+  unitPrice   Decimal
+  total       Decimal
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([productId])
+}
+
+model PaymentOrder {
+  id                       Int            @id @default(autoincrement())
+  tenantId                 Int
+  tenant                   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  packageId                String
+  days                     Int
+  amount                   Decimal
+  currency                 String
+  status                   payment_status
+  mercadopagoPreferenceId  String?
+  mercadopagoPaymentId     String?
+  createdAt                DateTime       @default(now())
+  updatedAt                temporal.updatedAt()
+
+  @@index([tenantId])
 }
