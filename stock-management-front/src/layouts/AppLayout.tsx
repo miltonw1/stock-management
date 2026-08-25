@@ -2,10 +2,12 @@ import { NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Boxes,
+  CreditCard,
   Home,
   Layers,
   MapPin,
   Package,
+  ReceiptText,
   Truck,
   Users,
 } from 'lucide-react'
@@ -20,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/auth'
 import { setLanguage } from '@/lib/i18n'
+import { useBillingStatus } from '@/hooks/useBilling'
 import type { UserRole } from '@/types/api'
 
 const allRoles: UserRole[] = ['owner', 'admin', 'employee']
@@ -29,6 +32,8 @@ const navItems = [
   { to: '/categories', label: 'nav.categories', icon: Layers, roles: allRoles },
   { to: '/suppliers', label: 'nav.suppliers', icon: Truck, roles: allRoles },
   { to: '/locations', label: 'nav.locations', icon: MapPin, roles: allRoles },
+  { to: '/sales', label: 'nav.sales', icon: ReceiptText, roles: allRoles },
+  { to: '/billing', label: 'nav.billing', icon: CreditCard, roles: allRoles },
   { to: '/users', label: 'nav.users', icon: Users, roles: ['owner', 'admin'] as UserRole[] },
 ]
 
@@ -57,6 +62,7 @@ function LanguageSwitcher() {
 export function AppLayout() {
   const { t } = useTranslation()
   const { user, tenant, logout } = useAuth()
+  const { readOnly } = useBillingStatus()
 
   return (
     <div className="flex min-h-screen">
@@ -117,6 +123,16 @@ export function AppLayout() {
         </header>
 
         <main className="flex-1 p-6">
+          {readOnly && (
+            <div className="mb-6 flex items-center justify-between rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3">
+              <p className="text-sm font-medium text-destructive">
+                {t('readOnly.banner')}
+              </p>
+              <Button asChild size="sm" variant="outline">
+                <NavLink to="/billing">{t('readOnly.payNow')}</NavLink>
+              </Button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

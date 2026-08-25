@@ -9,6 +9,9 @@ import { CategoriesPage } from './pages/CategoriesPage'
 import { SuppliersPage } from './pages/SuppliersPage'
 import { LocationsPage } from './pages/LocationsPage'
 import { UsersPage } from './pages/UsersPage'
+import { SalesPage } from './pages/SalesPage'
+import { SubscriptionPage } from './pages/SubscriptionPage'
+import { BillingReturnPage } from './pages/BillingReturnPage'
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth()
@@ -30,6 +33,11 @@ export function AppRoutes() {
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/suppliers" element={<SuppliersPage />} />
           <Route path="/locations" element={<LocationsPage />} />
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/billing" element={<SubscriptionPage />} />
+          <Route path="/billing/success" element={<BillingReturnPage mode="success" />} />
+          <Route path="/billing/failure" element={<BillingReturnPage mode="failure" />} />
+          <Route path="/billing/pending" element={<BillingReturnPage mode="pending" />} />
           <Route path="/users" element={<UsersPage />} />
         </Route>
       </Route>
