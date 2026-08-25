@@ -1,0 +1,211 @@
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+
+const resources = {
+  es: {
+    translation: {
+      app: {
+        title: 'Gestor de Stock',
+        tagline: 'Productos por comercio',
+      },
+      nav: {
+        home: 'Inicio',
+        products: 'Productos',
+        categories: 'Categorías',
+        suppliers: 'Proveedores',
+        locations: 'Ubicaciones',
+        users: 'Usuarios',
+      },
+      auth: {
+        login: 'Iniciar sesión',
+        register: 'Crear cuenta',
+        logout: 'Cerrar sesión',
+        email: 'Correo electrónico',
+        password: 'Contraseña',
+        name: 'Nombre',
+        tenantName: 'Nombre de la tienda',
+        loginTitle: 'Bienvenido de nuevo',
+        registerTitle: 'Crea tu tienda',
+        noAccount: '¿No tienes cuenta?',
+        haveAccount: '¿Ya tienes cuenta?',
+        tenantLabel: 'Tienda',
+      },
+      common: {
+        save: 'Guardar',
+        cancel: 'Cancelar',
+        edit: 'Editar',
+        delete: 'Eliminar',
+        create: 'Crear',
+        search: 'Buscar',
+        actions: 'Acciones',
+        confirmDelete: '¿Confirmás eliminar?',
+        loading: 'Cargando…',
+        empty: 'No hay datos',
+        error: 'Ocurrió un error',
+        all: 'Todos',
+      },
+      products: {
+        title: 'Productos',
+        create: 'Nuevo producto',
+        name: 'Nombre',
+        description: 'Descripción',
+        stock: 'Stock',
+        minStock: 'Stock mínimo',
+        price: 'Precio',
+        cost: 'Costo',
+        unit: 'Unidad',
+        category: 'Categoría',
+        supplier: 'Proveedor',
+        location: 'Ubicación',
+        none: 'Ninguna',
+      },
+      categories: {
+        title: 'Categorías',
+        create: 'Nueva categoría',
+        name: 'Nombre',
+        duplicateName: 'Ya existe una categoría con ese nombre.',
+      },
+      suppliers: {
+        title: 'Proveedores',
+        create: 'Nuevo proveedor',
+        name: 'Nombre',
+        phone: 'Teléfono',
+        email: 'Correo electrónico',
+      },
+      locations: {
+        title: 'Ubicaciones',
+        create: 'Nueva ubicación',
+        name: 'Nombre',
+        code: 'Código',
+        duplicateCode: 'Ya existe una ubicación con ese código.',
+      },
+      users: {
+        title: 'Usuarios',
+        create: 'Nuevo usuario',
+        role: 'Rol',
+      },
+      roles: {
+        owner: 'Dueño',
+        admin: 'Administrador',
+        employee: 'Empleado',
+      },
+      home: {
+        welcome: 'Hola, {{name}}',
+        products: 'Productos',
+        categories: 'Categorías',
+        suppliers: 'Proveedores',
+        locations: 'Ubicaciones',
+      },
+    },
+  },
+  en: {
+    translation: {
+      app: {
+        title: 'Stock Manager',
+        tagline: 'Products per shop',
+      },
+      nav: {
+        home: 'Dashboard',
+        products: 'Products',
+        categories: 'Categories',
+        suppliers: 'Suppliers',
+        locations: 'Locations',
+        users: 'Users',
+      },
+      auth: {
+        login: 'Sign in',
+        register: 'Create account',
+        logout: 'Sign out',
+        email: 'Email',
+        password: 'Password',
+        name: 'Name',
+        tenantName: 'Shop name',
+        loginTitle: 'Welcome back',
+        registerTitle: 'Create your shop',
+        noAccount: "Don't have an account?",
+        haveAccount: 'Already have an account?',
+        tenantLabel: 'Shop',
+      },
+      common: {
+        save: 'Save',
+        cancel: 'Cancel',
+        edit: 'Edit',
+        delete: 'Delete',
+        create: 'Create',
+        search: 'Search',
+        actions: 'Actions',
+        confirmDelete: 'Are you sure you want to delete?',
+        loading: 'Loading…',
+        empty: 'No data',
+        error: 'Something went wrong',
+        all: 'All',
+      },
+      products: {
+        title: 'Products',
+        create: 'New product',
+        name: 'Name',
+        description: 'Description',
+        stock: 'Stock',
+        minStock: 'Min. stock',
+        price: 'Price',
+        cost: 'Cost',
+        unit: 'Unit',
+        category: 'Category',
+        supplier: 'Supplier',
+        location: 'Location',
+        none: 'None',
+      },
+      categories: {
+        title: 'Categories',
+        create: 'New category',
+        name: 'Name',
+        duplicateName: 'A category with that name already exists.',
+      },
+      suppliers: {
+        title: 'Suppliers',
+        create: 'New supplier',
+        name: 'Name',
+        phone: 'Phone',
+        email: 'Email',
+      },
+      locations: {
+        title: 'Locations',
+        create: 'New location',
+        name: 'Name',
+        code: 'Code',
+        duplicateCode: 'A location with that code already exists.',
+      },
+      users: {
+        title: 'Users',
+        create: 'New user',
+        role: 'Role',
+      },
+      roles: {
+        owner: 'Owner',
+        admin: 'Admin',
+        employee: 'Employee',
+      },
+      home: {
+        welcome: 'Hello, {{name}}',
+        products: 'Products',
+        categories: 'Categories',
+        suppliers: 'Suppliers',
+        locations: 'Locations',
+      },
+    },
+  },
+}
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: localStorage.getItem('lang') ?? 'es',
+  fallbackLng: 'es',
+  interpolation: { escapeValue: false },
+})
+
+export function setLanguage(lang: 'es' | 'en') {
+  localStorage.setItem('lang', lang)
+  void i18n.changeLanguage(lang)
+}
+
+export default i18n
