@@ -46,11 +46,16 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const slug = await this.uniqueSlug(dto.tenantName);
+    const trialDays = Number(
+      this.config.get<string>('BILLING_TRIAL_DAYS') ?? 7,
+    );
+    const expiresAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000);
 
     const { user, tenant } = await this.db.transaction(async (tx) => {
       const tenant = await tx.orm.public.Tenant.create({
         name: dto.tenantName,
         slug,
+        expiresAt,
       });
       const user = await tx.orm.public.User.create({
         email,
@@ -68,7 +73,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const email = dto.email.toLowerCase();
     const user = await this.db.orm.public.User.include('tenant', (t) =>
-      t.select('id', 'name', 'slug'),
+      t.select('id', 'name', 'slug', 'expiresAt'),
     )
       .where((u) => u.email.eq(email))
       .first();
@@ -87,7 +92,7 @@ export class AuthService {
 
   async me(payload: JwtPayload) {
     const user = await this.db.orm.public.User.include('tenant', (t) =>
-      t.select('id', 'name', 'slug'),
+      t.select('id', 'name', 'slug', 'expiresAt'),
     )
       .where({ id: payload.sub, tenantId: payload.tenantId })
       .first();
@@ -104,7 +109,7 @@ export class AuthService {
 
   private buildAuthResult(
     user: { id: number; email: string; name: string; role: UserRole },
-    tenant: { id: number; name: string; slug: string },
+    tenant: { id: number; name: string; slug: string; expiresAt: Date },
   ) {
     const accessToken = this.jwt.sign(
       {
