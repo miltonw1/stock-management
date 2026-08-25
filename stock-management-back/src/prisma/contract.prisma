@@ -1,21 +1,102 @@
 // use prisma-next
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt DateTime @default(now())
+enum user_role {
+  @@type("pg/text@1")
+  owner    = "owner"
+  admin    = "admin"
+  employee = "employee"
+}
+
+model Tenant {
+  id        Int        @id @default(autoincrement())
+  name      String
+  slug      String     @unique
+  users     User[]
+  categories Category[]
+  suppliers Supplier[]
+  locations Location[]
+  products  Product[]
+  createdAt DateTime   @default(now())
   updatedAt temporal.updatedAt()
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt DateTime @default(now())
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         user_role
+  tenantId     Int
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    temporal.updatedAt()
+
+  @@index([tenantId])
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  tenantId  Int
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
   updatedAt temporal.updatedAt()
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String
+  phone     String?
+  email     String?
+  tenantId  Int
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([tenantId])
+}
+
+model Location {
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String
+  tenantId  Int
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  stock       Int       @default(0)
+  minStock    Int       @default(0)
+  price       Decimal
+  cost        Decimal?
+  unit        String?
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  supplierId  Int?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  locationId  Int?
+  location    Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  tenantId    Int
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([tenantId])
+  @@index([categoryId])
+  @@index([supplierId])
+  @@index([locationId])
 }
