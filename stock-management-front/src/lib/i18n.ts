@@ -128,6 +128,7 @@ const resources = {
         failureText: 'Si el pago fue aprobado, se acreditará en breve.',
         pendingTitle: 'Pago en proceso',
         back: 'Volver a la suscripción',
+        daysLeftHeader: 'Te quedan {{days}} días de suscripción',
       },
       sales: {
         title: 'Ventas',
@@ -271,6 +272,7 @@ const resources = {
         failureText: 'If approved, it will be credited shortly.',
         pendingTitle: 'Payment in progress',
         back: 'Back to subscription',
+        daysLeftHeader: 'You have {{days}} days of subscription left',
       },
       sales: {
         title: 'Sales',

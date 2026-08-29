@@ -62,7 +62,13 @@ function LanguageSwitcher() {
 export function AppLayout() {
   const { t } = useTranslation()
   const { user, tenant, logout } = useAuth()
-  const { readOnly } = useBillingStatus()
+  const { data, readOnly } = useBillingStatus()
+
+  const expiresAt = data ? new Date(data.expiresAt) : null
+  const daysRemaining = expiresAt
+    ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000))
+    : 0
+  const isUrgent = daysRemaining < 14
 
   return (
     <div className="flex min-h-screen">
@@ -102,6 +108,14 @@ export function AppLayout() {
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-end gap-2 border-b px-4">
+          {data && (
+            <NavLink
+              to="/billing"
+              className={isUrgent ? 'text-sm font-medium text-destructive' : 'text-sm font-medium text-green-600'}
+            >
+              {t('billing.daysLeftHeader', { days: daysRemaining })}
+            </NavLink>
+          )}
           <LanguageSwitcher />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
