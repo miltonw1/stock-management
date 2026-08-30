@@ -37,9 +37,7 @@ export function SaleDialog({
 }) {
   const { t } = useTranslation()
   const qc = useQueryClient()
-  const [productId, setProductId] = useState(
-    () => String(defaultProductId ?? products[0]?.id ?? ''),
-  )
+  const [productId, setProductId] = useState(() => String(defaultProductId ?? ''))
   const [quantity, setQuantity] = useState('1')
 
   const selected = products.find((p) => String(p.id) === productId)

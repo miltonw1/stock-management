@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -13,6 +13,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination'
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,6 +30,8 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { resolveApiError } from '@/lib/errors'
+import { pageNumbers } from '@/lib/pagination'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useReadOnly } from '@/hooks/useBilling'
 import {
   createCategory,
@@ -31,6 +40,8 @@ import {
   updateCategory,
 } from '@/lib/api'
 import type { Category } from '@/types/api'
+
+const PAGE_SIZE = 20
 
 export function CategoriesPage() {
   const { t } = useTranslation()
@@ -41,11 +52,22 @@ export function CategoriesPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+
+  const debouncedSearch = useDebouncedValue(search, 300)
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: fetchCategories,
   })
+
+  const filtered = data.filter((c) =>
+    c.name.toLowerCase().includes(debouncedSearch.trim().toLowerCase()),
+  )
+  const total = filtered.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['categories'] })
 
@@ -66,6 +88,9 @@ export function CategoriesPage() {
   const remove = useMutation({
     mutationFn: (id: number) => deleteCategory(id),
     onSuccess: () => {
+      if (page > 1 && filtered.length === 1) {
+        setPage((p) => p - 1)
+      }
       invalidate()
       setDeleteTarget(null)
     },
@@ -102,6 +127,19 @@ export function CategoriesPage() {
         )}
       </PageHeader>
 
+      <div className="mb-4 relative">
+        <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
+          placeholder={t('common.search')}
+          className="w-64 pl-8"
+        />
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -117,14 +155,14 @@ export function CategoriesPage() {
                   {t('common.loading')}
                 </TableCell>
               </TableRow>
-            ) : data.length === 0 ? (
+            ) : pageItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={2} className="text-center text-muted-foreground">
                   {t('common.empty')}
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((category) => (
+              pageItems.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>{category.name}</TableCell>
                   <TableCell className="text-right">
@@ -152,6 +190,53 @@ export function CategoriesPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          {t('categories.total', { total })} · {t('categories.page', { page, totalPages })}
+        </p>
+        <Pagination className="m-0">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationLink
+                size="sm"
+                variant="outline"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                ←
+              </PaginationLink>
+            </PaginationItem>
+            {pageNumbers(page, totalPages).map((p, i) =>
+              p === 'ellipsis' ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    size="sm"
+                    isActive={p === page}
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
+            <PaginationItem>
+              <PaginationLink
+                size="sm"
+                variant="outline"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                →
+              </PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

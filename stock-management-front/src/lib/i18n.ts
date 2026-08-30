@@ -74,12 +74,16 @@ const resources = {
         supplier: 'Proveedor',
         location: 'Ubicación',
         none: 'Ninguna',
+        total: 'Total: {{total}}',
+        page: 'Página {{page}} de {{totalPages}}',
       },
       categories: {
         title: 'Categorías',
         create: 'Nueva categoría',
         name: 'Nombre',
         duplicateName: 'Ya existe una categoría con ese nombre.',
+        total: 'Total: {{total}}',
+        page: 'Página {{page}} de {{totalPages}}',
       },
       suppliers: {
         title: 'Proveedores',
@@ -218,12 +222,16 @@ const resources = {
         supplier: 'Supplier',
         location: 'Location',
         none: 'None',
+        total: 'Total: {{total}}',
+        page: 'Page {{page}} of {{totalPages}}',
       },
       categories: {
         title: 'Categories',
         create: 'New category',
         name: 'Name',
         duplicateName: 'A category with that name already exists.',
+        total: 'Total: {{total}}',
+        page: 'Page {{page}} of {{totalPages}}',
       },
       suppliers: {
         title: 'Suppliers',

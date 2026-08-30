@@ -20,6 +20,7 @@ export function SalesPage() {
   const { t } = useTranslation()
   const readOnly = useReadOnly()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogKey, setDialogKey] = useState(0)
 
   const products = useQuery({ queryKey: ['products', 'sale'], queryFn: () => fetchProducts({ pageSize: 200 }) })
   const sales = useQuery({ queryKey: ['sales'], queryFn: () => fetchSales({ page: 1, pageSize: 50 }) })
@@ -30,7 +31,13 @@ export function SalesPage() {
     <div>
       <PageHeader title={t('sales.title')}>
         {!readOnly && (
-          <Button onClick={() => setDialogOpen(true)} disabled={!products.data?.items?.length}>
+          <Button
+            onClick={() => {
+              setDialogKey((k) => k + 1)
+              setDialogOpen(true)
+            }}
+            disabled={!products.data?.items?.length}
+          >
             <Plus className="size-4" />
             {t('sales.create')}
           </Button>
@@ -77,6 +84,7 @@ export function SalesPage() {
       </div>
 
       <SaleDialog
+        key={dialogKey}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         products={products.data?.items ?? []}

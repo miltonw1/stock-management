@@ -22,12 +22,21 @@ import {
 } from '@/components/ui/table'
 import { PageHeader } from '@/components/PageHeader'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination'
 import { SaleDialog } from '@/components/SaleDialog'
 import {
   ProductFormDialog,
   type ProductFormValues,
 } from '@/components/ProductFormDialog'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useReadOnly } from '@/hooks/useBilling'
+import { pageNumbers } from '@/lib/pagination'
 import {
   createProduct,
   deleteProduct,
@@ -60,16 +69,19 @@ export function ProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
   const [saleOpen, setSaleOpen] = useState(false)
   const [saleProductId, setSaleProductId] = useState<number | undefined>(undefined)
+  const [saleKey, setSaleKey] = useState(0)
+
+  const debouncedSearch = useDebouncedValue(filters.search, 300)
 
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories })
   const suppliers = useQuery({ queryKey: ['suppliers'], queryFn: fetchSuppliers })
   const locations = useQuery({ queryKey: ['locations'], queryFn: fetchLocations })
 
   const products = useQuery({
-    queryKey: ['products', filters],
+    queryKey: ['products', { ...filters, search: debouncedSearch }],
     queryFn: () =>
       fetchProducts({
-        search: filters.search || undefined,
+        search: debouncedSearch || undefined,
         categoryId: filters.categoryId,
         supplierId: filters.supplierId,
         locationId: filters.locationId,
@@ -96,6 +108,9 @@ export function ProductsPage() {
   const remove = useMutation({
     mutationFn: (id: number) => deleteProduct(id),
     onSuccess: () => {
+      if (filters.page > 1 && (products.data?.items.length ?? 0) === 1) {
+        setFilters((prev) => ({ ...prev, page: prev.page - 1 }))
+      }
       invalidate()
       setDeleteTarget(null)
     },
@@ -243,6 +258,7 @@ export function ProductsPage() {
                           title={t('sales.create')}
                           onClick={() => {
                             setSaleProductId(product.id)
+                            setSaleKey((k) => k + 1)
                             setSaleOpen(true)
                           }}
                         >
@@ -277,28 +293,51 @@ export function ProductsPage() {
         </Table>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {total} · {totalPages} {t('products.title').toLowerCase()}
+          {t('products.total', { total })} · {t('products.page', { page, totalPages })}
         </p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setFilter('page', page - 1)}
-          >
-            ←
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setFilter('page', page + 1)}
-          >
-            →
-          </Button>
-        </div>
+        <Pagination className="m-0">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationLink
+                size="sm"
+                variant="outline"
+                disabled={page <= 1}
+                onClick={() => setFilter('page', page - 1)}
+              >
+                ←
+              </PaginationLink>
+            </PaginationItem>
+            {pageNumbers(page, totalPages).map((p, i) =>
+              p === 'ellipsis' ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={p}>
+                  <PaginationLink
+                    size="sm"
+                    isActive={p === page}
+                    onClick={() => setFilter('page', p)}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
+            <PaginationItem>
+              <PaginationLink
+                size="sm"
+                variant="outline"
+                disabled={page >= totalPages}
+                onClick={() => setFilter('page', page + 1)}
+              >
+                →
+              </PaginationLink>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
 
       <ProductFormDialog
@@ -314,6 +353,7 @@ export function ProductsPage() {
       />
 
       <SaleDialog
+        key={saleKey}
         open={saleOpen}
         onOpenChange={setSaleOpen}
         products={products.data?.items ?? []}
