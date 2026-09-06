@@ -211,9 +211,9 @@ export class BillingService {
           ],
           external_reference: String(orderId),
           back_urls: {
-            success: `${this.webhookBaseUrl}/billing/return/success`,
-            failure: `${this.webhookBaseUrl}/billing/return/failure`,
-            pending: `${this.webhookBaseUrl}/billing/return/pending`,
+            success: `${this.webhookBaseUrl}/api/billing/return/success`,
+            failure: `${this.webhookBaseUrl}/api/billing/return/failure`,
+            pending: `${this.webhookBaseUrl}/api/billing/return/pending`,
           },
           notification_url: `${this.webhookBaseUrl}/api/billing/webhook`,
         }),
